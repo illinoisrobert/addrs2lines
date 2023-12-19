@@ -1,11 +1,13 @@
 # Copyright 2023 Board of Trustees of the University of Illinois
 # SPDX-License-Identifier: MIT
 
+"""
+This module contains classes for translating addresses to function and
+file names.
+"""
+
 import subprocess
-from typing import List
 import re
-import sys
-from functools import cache
 
 class Translator:
     """
@@ -22,17 +24,23 @@ class Translator:
         )
         self.offset = offset
         self.name = name
+        self._cache = {}
 
     # @cache
     def translate(self, line: str) -> str:
         """
         Write a single address to addr2line and return the result.
         """
+        # memoize the result of this function
+        if line in self._cache:
+            return self._cache[line]
+
         self.process.stdin.write(line + '\n')
         self.process.stdin.flush()
         result = self.process.stdout.readline().strip()
         if '?' in result:
             result = line
+        self._cache[line] = result
         return result
 
 class ModuleDict(dict):
@@ -41,6 +49,7 @@ class ModuleDict(dict):
     """
     def __init__(self, module_file: str, module_dir: str):
         super().__init__()
+        self._cache = {}
 
         # Regex to match 64-bit hex numbers
         addr_re = re.compile(r'\b0x[0-9a-f]{16}\b')
@@ -61,7 +70,6 @@ class ModuleDict(dict):
 
                 # Create an addr2line process for the module
                 self[range(addr, addr + size)] = Translator(
-                    '-f',  # include function name
                     '-C',  # demangle C++ names
                     '-e', name, # executable file
                     offset=addr, # offset of module in memory
@@ -75,16 +83,23 @@ class ModuleDict(dict):
         Either a single address or a range of addresses can be used as
         a key.
         """
+        # memoize the result of this function
+        if addr in self._cache:
+            return self._cache[addr]
         # first compare the type of the key to the type of the keys in the dict
         # if they are the same, then we can use the super method
         if isinstance(addr, range):
-                return super().__getitem__(addr)
+            result = super().__getitem__(addr)
+            self._cache[addr] = result
+            return result
 
         # Now search for the range that contains the address.abs
         # This is a linear search, but it should be fast enough.
         for key in self:
             if addr in key:
-                return super().__getitem__(key)
+                result = super().__getitem__(key)
+                self._cache[addr] = result
+                return result
 
         # If we get here, then the address was not found in any of the ranges.
         raise KeyError(addr)

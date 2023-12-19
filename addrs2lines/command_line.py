@@ -1,6 +1,11 @@
 # Copyright 2023 Board of Trustees of the University of Illinois
 # SPDX-License-Identifier: MIT
 
+"""
+This module contains classes for translating addresses to function and
+file names.
+"""
+
 import sys
 import argparse
 import re

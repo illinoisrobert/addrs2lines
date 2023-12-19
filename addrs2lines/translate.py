@@ -12,7 +12,7 @@ class Translator:
     A wrapper around addr2line that allows for multiple addresses to be
     resolved in a single process.
     """
-    def __init__(self, *args: str, offset: int = 0):
+    def __init__(self, *args: str, offset: int = 0, name: str = ''):
         self.process = subprocess.Popen(
             ['addr2line'] + list(args),
             stdin=subprocess.PIPE,
@@ -21,6 +21,7 @@ class Translator:
             text=True
         )
         self.offset = offset
+        self.name = name
 
     # @cache
     def translate(self, line: str) -> str:
@@ -63,7 +64,8 @@ class ModuleDict(dict):
                     '-f',  # include function name
                     '-C',  # demangle C++ names
                     '-e', name, # executable file
-                    offset=addr) # offset of module in memory
+                    offset=addr, # offset of module in memory
+                    name=name)
 
     # @cache
     def __getitem__(self, addr: int|range) -> Translator:

@@ -34,7 +34,7 @@ def run_filter(kernel: str, modules: str, module_dir: str) -> None:
     # see https://www.kernel.org/doc/html/v6.6/arch/x86/x86_64/mm.html
     if kernel is not None:
         kernel_range = range(0xffffffff80000000, 0xffffffffa0000000)
-        ko_dict[kernel_range] = Translator('-f', '-C', '-e', kernel)
+        ko_dict[kernel_range] = Translator('-C', '-e', kernel, offset=0, name=kernel)
 
     # Regex to match 64-bit hex numbers
     addr_re = re.compile(r'\b[0-9a-f]{16}\b')
@@ -50,7 +50,7 @@ def run_filter(kernel: str, modules: str, module_dir: str) -> None:
             # translate the address using the appropriate addr2line process
             # if the address is not found, then just use the address
             try:
-                new_addr = ko_dict[iaddr].translate(addr)
+                new_addr = f'"{ko_dict[iaddr].translate(addr)}"'
             except KeyError:
                 new_addr = addr
 

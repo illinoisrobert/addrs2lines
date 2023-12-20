@@ -4,6 +4,19 @@
 in support of the [memorizer project][2]
 at [Information Trust Institute][3] at University of Illinois.
 
+
+## Usage
+
+Assuming you have finished a memorizer run and have collected:
+* vmlinux
+* /proc/modules
+* `cp $(find /lib/modules/${uname -r} -name '*.ko' -print) .`
+* `kmap`, `allocs`, `accesses`, any or all of them.
+
+Then a typical usage might look like this:
+
+    addrs2lines -e vmlinux -m modules -d . < kmap > kmap.out
+
 ## License
 
 This project is licensed under the [MIT license][4]
@@ -13,6 +26,12 @@ See [LICENSE][5] for details.
 
 Portions of this code were inspired by, adapted from,
 or copied from [Github Copilot][1] suggestions.
+
+## TODO
+
+Faster. Maybe by making multiple copies of addr2line run in parallel.
+
+Add tests. Currently kernel addresses are ad-hoc tested, but module addresses are untested.
 
 ## Authors
 

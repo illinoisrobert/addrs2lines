@@ -55,7 +55,8 @@ def run_filter(kernel: str, modules: str, module_dir: str) -> None:
             # translate the address using the appropriate addr2line process
             # if the address is not found, then just use the address
             try:
-                new_addr = f'"{ko_dict[iaddr].translate(addr)}"'
+                translator = ko_dict[iaddr]
+                new_addr = '"' + translator.translate(f'{iaddr - translator.offset:016x}') + '"'
             except KeyError:
                 new_addr = addr
 
